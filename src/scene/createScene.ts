@@ -30,7 +30,7 @@ export function createScene(canvas: HTMLCanvasElement): GameScene {
   )
 
   // Attach camera controls
-  camera.attachControls(canvas, true)
+  camera.attachControl(canvas, true)
 
   // Create lighting
   const light = new HemisphericLight('light', new Vector3(0, 1, 0), scene)
