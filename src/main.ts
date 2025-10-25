@@ -71,7 +71,7 @@ initializeRapierWorld().then((physicsWorld) => {
   const ballPool = createBallPool(physicsWorld.world, gameScene.scene, 50); // Max 50 balls
 
   // Test: Spawn a ball at the top of the board
-  const testBallPosition = new Vector3(0, pinGrid.topY + 2, 0.3);
+  const testBallPosition = new Vector3(0, pinGrid.topY + 2, -2);
   const testBall = spawnBall(ballPool, testBallPosition);
 
   // Start the game loop with physics synchronization AFTER spawning balls

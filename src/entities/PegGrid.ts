@@ -5,6 +5,7 @@ import {
   Color3,
   Vector3,
   Scene,
+  TransformNode,
 } from "@babylonjs/core";
 
 export interface Pin {
@@ -26,6 +27,7 @@ export interface PinBodies {
   pinBodies: RAPIER.RigidBody[];
   pinMeshes: any[];
   backBoard: any;
+  boardGroup: TransformNode;
 }
 
 export function generateTrianglePins(params?: {
@@ -63,9 +65,15 @@ export function createPinBodies(
   const pinBodies: RAPIER.RigidBody[] = [];
   const pinMeshes: any[] = [];
 
+  // Create a parent group for the board and pins
+  const boardGroup = new TransformNode("boardGroup", scene);
+
+  // Tilt angle: 15 degrees
+  const tiltAngle = -(15 * Math.PI) / 180; // Convert to radians
+
   // Create back board first
   const boardWidth = pinGrid.bottomWidth + 1.2;
-  const boardHeight = pinGrid.topY - pinGrid.binsY + 2;
+  const boardHeight = pinGrid.topY - pinGrid.binsY + 10;
   const boardDepth = 0.1;
 
   // Create back board material
@@ -83,16 +91,41 @@ export function createPinBodies(
     },
     scene
   );
+  // Local position (before tilt)
   backBoard.position = new Vector3(
+    0,
+    pinGrid.topY - boardHeight / 2 + 10,
+    -boardDepth / 2
+  );
+  backBoard.material = boardMaterial;
+  backBoard.parent = boardGroup; // Parent to the group
+
+  // Calculate rotated position for physics body
+  const boardLocalPos = new Vector3(
     0,
     pinGrid.topY - boardHeight / 2,
     -boardDepth / 2
   );
-  backBoard.material = boardMaterial;
+  const boardRotatedPos = rotatePointAroundX(boardLocalPos, tiltAngle);
 
-  // Create back board physics body
+  // Create back board physics body with rotation
   const boardDesc = RAPIER.RigidBodyDesc.fixed();
-  boardDesc.setTranslation(0, pinGrid.topY - boardHeight / 2, -boardDepth / 2);
+  boardDesc.setTranslation(
+    boardRotatedPos.x,
+    boardRotatedPos.y,
+    boardRotatedPos.z
+  );
+
+  // Apply rotation to the rigid body (using quaternion from Euler angles)
+  // For rotation around X axis: quat = [sin(θ/2), 0, 0, cos(θ/2)]
+  const halfAngle = tiltAngle / 2;
+  const boardQuat = {
+    x: Math.sin(halfAngle),
+    y: 0,
+    z: 0,
+    w: Math.cos(halfAngle),
+  };
+  boardDesc.setRotation(boardQuat);
 
   const boardColliderDesc = RAPIER.ColliderDesc.cuboid(
     boardWidth / 2,
@@ -108,12 +141,26 @@ export function createPinBodies(
   pinMaterial.specularColor = new Color3(0.3, 0.3, 0.3);
 
   const pinRadius = 0.1;
-  const pinHeight = 0.3; // Height of cylindrical pins
+  const pinHeight = 1; // Height of cylindrical pins
 
   for (const pin of pinGrid.pins) {
+    // Local position (before tilt)
+    const pinLocalPos = new Vector3(pin.x, pin.y, pinHeight / 2);
+    const pinRotatedPos = rotatePointAroundX(pinLocalPos, tiltAngle);
+
     // Create Rapier physics body for pin (vertical cylinder)
     const pinDesc = RAPIER.RigidBodyDesc.fixed();
-    pinDesc.setTranslation(pin.x, pin.y, pinHeight / 2); // Position at half height
+    pinDesc.setTranslation(pinRotatedPos.x, pinRotatedPos.y, pinRotatedPos.z);
+
+    // Apply rotation: tilt + perpendicular to board
+    const pinHalfAngle = (tiltAngle + Math.PI / 2) / 2;
+    const pinQuat = {
+      x: Math.sin(pinHalfAngle),
+      y: 0,
+      z: 0,
+      w: Math.cos(pinHalfAngle),
+    };
+    pinDesc.setRotation(pinQuat);
 
     const pinColliderDesc = RAPIER.ColliderDesc.cylinder(
       pinHeight / 2,
@@ -140,8 +187,12 @@ export function createPinBodies(
     pinMesh.rotation.x = Math.PI / 2; // Rotate 90 degrees around X-axis
     pinMesh.position = new Vector3(pin.x, pin.y, pinHeight / 2); // Position at half height
     pinMesh.material = pinMaterial;
+    pinMesh.parent = boardGroup; // Parent to the group
     pinMeshes.push(pinMesh);
   }
+
+  // Apply tilt to the entire board group
+  boardGroup.rotation.x = tiltAngle;
 
   console.log(`Created ${pinBodies.length} pins in ${pinGrid.rows} rows`);
   console.log(
@@ -152,10 +203,19 @@ export function createPinBodies(
   console.log(
     `Back board created: ${boardWidth} x ${boardHeight} x ${boardDepth}`
   );
+  console.log(`Board tilted ${(tiltAngle * 180) / Math.PI} degrees`);
 
   return {
     pinBodies,
     pinMeshes,
     backBoard,
+    boardGroup,
   };
+}
+
+// Helper function to rotate a point around the X-axis
+function rotatePointAroundX(point: Vector3, angle: number): Vector3 {
+  const y = point.y * Math.cos(angle) - point.z * Math.sin(angle);
+  const z = point.y * Math.sin(angle) + point.z * Math.cos(angle);
+  return new Vector3(point.x, y, z);
 }
