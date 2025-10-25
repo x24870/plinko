@@ -3,6 +3,7 @@ import { createScene } from "./scene/createScene";
 import { initializeRapierWorld } from "./physics/rapierWorld";
 import { createStaticBodies } from "./physics/staticBodies";
 import { generateTrianglePins, createPinBodies } from "./entities/PegGrid";
+import { generateBins, createBinBodies } from "./entities/ScoringBins";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
@@ -48,11 +49,30 @@ initializeRapierWorld().then((physicsWorld) => {
     pinGrid
   );
 
+  // Generate bins and scoring zones
+  const binsInfo = generateBins({
+    rows: pinGrid.rows,
+    s: pinGrid.s,
+    topY: pinGrid.topY,
+    v: pinGrid.v,
+  });
+
+  // Create bin bodies and dividers
+  const binBodies = createBinBodies(
+    physicsWorld.world,
+    gameScene.scene,
+    binsInfo
+  );
+
   console.log("Static walls and ground created successfully");
   console.log("Pin grid created successfully");
+  console.log("Scoring bins created successfully");
   console.log(`Board dimensions: ${boardWidth} x ${boardHeight}`);
   console.log(`Total pins created: ${pinBodies.pinBodies.length}`);
   console.log(`Back board created: ${pinBodies.backBoard ? "yes" : "no"}`);
+  console.log(
+    `Total bins: ${binsInfo.bins.length}, Dividers: ${binBodies.binDividers.length}`
+  );
   console.log(
     `Static bodies: ${staticBodies.leftWall ? "walls" : "none"}, ${
       staticBodies.ground ? "ground" : "none"
