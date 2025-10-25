@@ -101,9 +101,11 @@ export function createPinBodies(
   backBoard.parent = boardGroup; // Parent to the group
 
   // Calculate rotated position for physics body
+  // The backBoard position is in local space relative to boardGroup
+  // After rotation, we need to calculate the world position
   const boardLocalPos = new Vector3(
     0,
-    pinGrid.topY - boardHeight / 2,
+    pinGrid.topY - boardHeight / 2 + 10,
     -boardDepth / 2
   );
   const boardRotatedPos = rotatePointAroundX(boardLocalPos, tiltAngle);
@@ -148,7 +150,7 @@ export function createPinBodies(
     const pinLocalPos = new Vector3(pin.x, pin.y, pinHeight / 2);
     const pinRotatedPos = rotatePointAroundX(pinLocalPos, tiltAngle);
 
-    // Create Rapier physics body for pin (vertical cylinder)
+    // Create Rapier physics body for pin
     const pinDesc = RAPIER.RigidBodyDesc.fixed();
     pinDesc.setTranslation(pinRotatedPos.x, pinRotatedPos.y, pinRotatedPos.z);
 
@@ -162,12 +164,14 @@ export function createPinBodies(
     };
     pinDesc.setRotation(pinQuat);
 
-    const pinColliderDesc = RAPIER.ColliderDesc.cylinder(
-      pinHeight / 2,
-      pinRadius
+    // Use capsule to avoid flat top surface
+    const pinColliderDesc = RAPIER.ColliderDesc.capsule(
+      pinHeight / 2 - pinRadius, // half-height of cylindrical part
+      pinRadius // radius
     );
-    pinColliderDesc.setRestitution(0.2);
-    pinColliderDesc.setFriction(0.6);
+    // Adjusted physics parameters to prevent balls from getting stuck
+    pinColliderDesc.setRestitution(0.5); // Higher bounce to help balls escape
+    pinColliderDesc.setFriction(0.3); // Lower friction so balls slide off easily
 
     const pinBody = world.createRigidBody(pinDesc);
     world.createCollider(pinColliderDesc, pinBody);

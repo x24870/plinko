@@ -1,6 +1,5 @@
 import * as RAPIER from "@dimforge/rapier3d-compat";
 import { Scene, Engine, Quaternion } from "@babylonjs/core";
-import { stepPhysics } from "../physics/rapierWorld";
 import { Ball, BallPool } from "../entities/Ball";
 
 export interface GameLoop {
@@ -13,7 +12,7 @@ export function createGameLoop(
   world: RAPIER.World,
   _scene: Scene,
   _engine: Engine,
-  timestep: number,
+  _timestep: number,
   ballPool: BallPool
 ): GameLoop {
   const gameLoop: GameLoop = {
@@ -22,14 +21,39 @@ export function createGameLoop(
     ballPool,
   };
 
+  // Create event queue to handle collisions
+  const eventQueue = new RAPIER.EventQueue(true);
+
   // Physics and render loop
   const update = (currentTime: number) => {
     if (!gameLoop.isRunning) return;
 
     gameLoop.lastTime = currentTime;
 
-    // Step physics simulation
-    stepPhysics(world, timestep);
+    // Step physics simulation with event queue
+    world.step(eventQueue);
+
+    // Drain collision events from the queue
+    eventQueue.drainCollisionEvents((handle1, handle2, started) => {
+      // Only process collision start events
+      if (started && gameLoop.ballPool) {
+        // Find if any of the colliders belongs to a ball
+        for (const ball of gameLoop.ballPool.activeBalls) {
+          const ballCollider = ball.body.collider(0);
+
+          if (
+            ballCollider &&
+            (ballCollider.handle === handle1 || ballCollider.handle === handle2)
+          ) {
+            // Apply random horizontal impulse when ball collides with pin
+            const randomForceX = (Math.random() - 0.5) * 0.006; // -0.3 to 0.3
+            const impulse = { x: randomForceX, y: 0, z: 0 };
+            ball.body.applyImpulse(impulse, true);
+            break; // Found the ball, no need to continue
+          }
+        }
+      }
+    });
 
     // Sync all active balls with their meshes
     if (gameLoop.ballPool) {

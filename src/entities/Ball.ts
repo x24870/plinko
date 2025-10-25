@@ -32,10 +32,16 @@ export function createBall(
   const ballDesc = RAPIER.RigidBodyDesc.dynamic();
   ballDesc.setTranslation(position.x, position.y, position.z);
 
+  // Enable continuous collision detection to prevent tunneling
+  ballDesc.setCcdEnabled(true);
+
   const ballColliderDesc = RAPIER.ColliderDesc.ball(0.2); // Radius 0.2
   ballColliderDesc.setRestitution(0.4); // Bouncy
   ballColliderDesc.setFriction(0.3); // Some friction
   ballColliderDesc.setDensity(1.0); // Standard density
+
+  // Set active events to detect collisions
+  ballColliderDesc.setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
 
   const ballBody = world.createRigidBody(ballDesc);
   world.createCollider(ballColliderDesc, ballBody);
