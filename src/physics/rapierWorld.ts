@@ -33,5 +33,6 @@ export async function initializeRapierWorld(): Promise<PhysicsWorld> {
 }
 
 export function stepPhysics(world: RAPIER.World, timestep: number): void {
+  world.timestep = timestep
   world.step()
 }
