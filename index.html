@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Plinko Game</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="renderCanvas"></canvas>
+      <div id="ui-overlay">
+        <div id="score-display">Score: <span id="score">0</span></div>
+        <div id="controls">
+          <button id="drop-ball-btn">Drop Ball</button>
+          <button id="reset-btn">Reset</button>
+        </div>
+        <div id="fps-counter" style="display: none;">FPS: <span id="fps">60</span></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+
