@@ -49,6 +49,11 @@ export function hideLoadingScreen(manager: LoadingManager): void {
   setTimeout(() => {
     manager.loadingScreen.classList.add("loaded");
     console.log("Loading screen hidden");
+
+    // Remove from DOM after transition
+    setTimeout(() => {
+      manager.loadingScreen.style.display = "none";
+    }, 500);
   }, 300);
 }
 
@@ -67,6 +72,8 @@ export function createProgressTracker(manager: LoadingManager) {
     ui: false,
   };
 
+  let isComplete = false;
+
   const updateProgress = () => {
     const completed = Object.values(tasks).filter(Boolean).length;
     const total = Object.keys(tasks).length;
@@ -74,29 +81,44 @@ export function createProgressTracker(manager: LoadingManager) {
     updateLoadingProgress(manager, progress);
   };
 
+  // Emergency timeout: force hide after 15 seconds
+  const emergencyTimeout = setTimeout(() => {
+    if (!isComplete) {
+      console.warn("Loading timeout - forcing hide loading screen");
+      hideLoadingScreen(manager);
+    }
+  }, 15000);
+
   return {
     markSceneReady: () => {
+      console.log("✓ Scene ready");
       tasks.scene = true;
       updateLoadingProgress(manager, 20, "Scene created...");
       updateProgress();
     },
     markPhysicsReady: () => {
+      console.log("✓ Physics ready");
       tasks.physics = true;
       updateLoadingProgress(manager, 40, "Physics initialized...");
       updateProgress();
     },
     markEntitiesReady: () => {
+      console.log("✓ Entities ready");
       tasks.entities = true;
       updateLoadingProgress(manager, 60, "Game entities ready...");
       updateProgress();
     },
     markSystemsReady: () => {
+      console.log("✓ Systems ready");
       tasks.systems = true;
       updateLoadingProgress(manager, 80, "Systems ready...");
       updateProgress();
     },
     markUIReady: () => {
+      console.log("✓ UI ready - hiding loading screen");
       tasks.ui = true;
+      isComplete = true;
+      clearTimeout(emergencyTimeout);
       updateLoadingProgress(manager, 100, "Ready!");
       updateProgress();
       setTimeout(() => hideLoadingScreen(manager), 300);

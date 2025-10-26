@@ -26,8 +26,8 @@ export default defineConfig({
       },
     },
     // Increase warning limit since BabylonJS/Rapier are inherently large
-    // babylon-core: ~3.4MB, rapier: ~2MB (these are optimized 3D/physics engines)
-    chunkSizeWarningLimit: 3500,
+    // babylon: ~5.1MB, rapier: ~2MB (these are optimized 3D/physics engines)
+    chunkSizeWarningLimit: 6000,
   },
 
   // Development server
