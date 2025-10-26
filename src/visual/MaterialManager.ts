@@ -47,12 +47,12 @@ export function createMaterialManager(scene: Scene): MaterialManager {
 
   if (useCustomTexture) {
     try {
-      const texture = new Texture(
-        "/textures/casino-girl.png",
-        scene,
-        false,
-        true
-      );
+      // Use relative path that works with Vite's base path
+      const texturePath =
+        (import.meta as any).env.BASE_URL + "textures/casino-girl.png";
+      console.log("Loading texture from:", texturePath);
+
+      const texture = new Texture(texturePath, scene, false, true);
       texture.onLoadObservable.addOnce(() => {
         console.log("✅ Custom board texture loaded successfully!");
         console.log("Texture size:", texture.getSize());
