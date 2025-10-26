@@ -6,12 +6,29 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Plinko Game</title>
-    <script type="module" crossorigin src="/plinko/assets/index-D7pBQiT5.js"></script>
-    <link rel="modulepreload" crossorigin href="/plinko/assets/babylon-42_bUzQY.js">
+    <script type="module" crossorigin src="/plinko/assets/index-CSfWWYbH.js"></script>
+    <link rel="modulepreload" crossorigin href="/plinko/assets/babylon-lights-C0WcFrZE.js">
+    <link rel="modulepreload" crossorigin href="/plinko/assets/babylon-cameras-BXn5fgKH.js">
+    <link rel="modulepreload" crossorigin href="/plinko/assets/babylon-meshes-5KxeLz0V.js">
+    <link rel="modulepreload" crossorigin href="/plinko/assets/babylon-materials-VN8CpVdA.js">
+    <link rel="modulepreload" crossorigin href="/plinko/assets/babylon-core-C-yFa0Tr.js">
     <link rel="modulepreload" crossorigin href="/plinko/assets/rapier-Ba2T-_GQ.js">
-    <link rel="stylesheet" crossorigin href="/plinko/assets/index-Dtb5J4Cp.css">
+    <link rel="stylesheet" crossorigin href="/plinko/assets/index-BWw6HbbV.css">
   </head>
   <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h1>Plinko</h1>
+        <p class="loading-text">Loading game...</p>
+        <div class="loading-bar">
+          <div class="loading-progress" id="loading-progress"></div>
+        </div>
+        <p class="loading-tip">Tip: Click anywhere to drop a ball!</p>
+      </div>
+    </div>
+
     <div id="app">
       <canvas id="renderCanvas"></canvas>
       <div id="ui-overlay">
