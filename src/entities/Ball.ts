@@ -232,3 +232,21 @@ export function getBallPoolStats(ballPool: BallPool): {
     canSpawn: canSpawnBall(ballPool),
   };
 }
+
+export function resetBallPool(ballPool: BallPool): void {
+  console.log(
+    `Resetting ball pool: ${ballPool.activeBalls.length} active balls`
+  );
+
+  // Recycle all active balls
+  const activeBallsCopy = [...ballPool.activeBalls];
+  for (const ball of activeBallsCopy) {
+    recycleBall(ball);
+  }
+
+  // Clear active balls array and move all to inactive
+  ballPool.activeBalls = [];
+  ballPool.inactiveBalls = [...ballPool.balls];
+
+  console.log("Ball pool reset complete");
+}

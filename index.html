@@ -11,12 +11,41 @@
     <div id="app">
       <canvas id="renderCanvas"></canvas>
       <div id="ui-overlay">
-        <div id="score-display">Score: <span id="score">0</span></div>
-        <div id="controls">
-          <button id="drop-ball-btn">Drop Ball</button>
-          <button id="reset-btn">Reset</button>
+        <!-- Score Panel -->
+        <div id="score-panel">
+          <div class="score-item">
+            <div class="score-label">Score</div>
+            <div class="score-value" id="total-score">0</div>
+          </div>
+          <div class="score-item small">
+            <div class="score-label">Balls</div>
+            <div class="score-value" id="balls-count">0/0</div>
+          </div>
+          <div class="score-item small">
+            <div class="score-label">Active</div>
+            <div class="score-value" id="active-balls">0/10</div>
+          </div>
         </div>
-        <div id="fps-counter" style="display: none;">FPS: <span id="fps">60</span></div>
+
+        <!-- Instructions -->
+        <div id="instructions">
+          Tap to drop ball
+        </div>
+
+        <!-- Last Score Notification -->
+        <div id="score-notification" class="hidden">
+          +<span id="notification-score">0</span>
+        </div>
+
+        <!-- Controls -->
+        <div id="controls">
+          <button id="reset-btn" class="btn-secondary">Reset</button>
+        </div>
+
+        <!-- FPS Counter -->
+        <div id="fps-counter" class="hidden">
+          FPS: <span id="fps">60</span>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

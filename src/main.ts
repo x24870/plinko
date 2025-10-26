@@ -16,6 +16,7 @@ import {
   hideInstructions,
   onResetButtonClick,
 } from "./ui/UIManager";
+import { createGameManager, resetGame } from "./systems/GameManager";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
@@ -143,11 +144,14 @@ initializeRapierWorld().then((physicsWorld) => {
     updateBallPoolDisplay(ui, ballPool);
   });
 
+  // Create game manager for coordinated resets
+  const gameManager = createGameManager(ballPool, scoringSystem, ui);
+
   // Setup reset button
   onResetButtonClick(ui, () => {
-    console.log(
-      "Reset button clicked - functionality to be implemented in Step 14"
-    );
+    resetGame(gameManager);
+    // Reset first ball dropped flag
+    firstBallDropped = false;
   });
 
   console.log("Static walls and ground created successfully");

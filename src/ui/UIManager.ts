@@ -106,3 +106,19 @@ export function setResetButtonEnabled(ui: UIManager, enabled: boolean): void {
 export function onResetButtonClick(ui: UIManager, callback: () => void): void {
   ui.elements.resetBtn.addEventListener("click", callback);
 }
+
+export function resetUI(ui: UIManager): void {
+  // Reset all displays to initial state
+  ui.elements.totalScore.textContent = "0";
+  ui.elements.ballsCount.textContent = "0/0";
+  ui.elements.activeBalls.textContent = "0/10";
+
+  // Hide score notification if visible
+  ui.elements.scoreNotification.classList.remove("show");
+  ui.elements.scoreNotification.classList.add("hidden");
+
+  // Show instructions again
+  showInstructions(ui);
+
+  console.log("UI reset to initial state");
+}
