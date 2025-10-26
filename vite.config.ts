@@ -17,24 +17,11 @@ export default defineConfig({
     assetsDir: "assets", // 所有 js/css/圖片/wasm 會放在 /plinko/assets/...
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // BabylonJS core
-          if (id.includes("@babylonjs/core")) {
-            // Split BabylonJS into smaller chunks
-            if (id.includes("Cameras")) return "babylon-cameras";
-            if (id.includes("Materials")) return "babylon-materials";
-            if (id.includes("Meshes")) return "babylon-meshes";
-            if (id.includes("Lights")) return "babylon-lights";
-            return "babylon-core";
-          }
-          // Rapier physics
-          if (id.includes("@dimforge/rapier")) {
-            return "rapier";
-          }
-          // Vendor chunks (other node_modules)
-          if (id.includes("node_modules")) {
-            return "vendor";
-          }
+        manualChunks: {
+          // Keep BabylonJS as one chunk to avoid circular dependency issues
+          babylon: ["@babylonjs/core"],
+          // Keep Rapier as separate chunk
+          rapier: ["@dimforge/rapier3d-compat"],
         },
       },
     },
