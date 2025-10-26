@@ -1,13 +1,13 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from "vite";
 
 export default defineConfig({
   // Base URL for deployment (change if deploying to subdirectory)
-  base: '/',
+  base: "/plinko",
 
   // Build optimization
   build: {
-    target: 'es2015',
-    minify: 'terser',
+    target: "es2015",
+    minify: "terser",
     terserOptions: {
       compress: {
         drop_console: false, // Keep console for debugging
@@ -18,9 +18,9 @@ export default defineConfig({
       output: {
         manualChunks: {
           // Split BabylonJS into separate chunk
-          'babylon': ['@babylonjs/core'],
+          babylon: ["@babylonjs/core"],
           // Split Rapier into separate chunk
-          'rapier': ['@dimforge/rapier3d-compat'],
+          rapier: ["@dimforge/rapier3d-compat"],
         },
       },
     },
@@ -40,5 +40,4 @@ export default defineConfig({
     port: 4173,
     open: true,
   },
-})
-
+});

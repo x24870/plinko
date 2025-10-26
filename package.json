@@ -12,9 +12,11 @@
     "preview": "vite preview",
     "deploy:vercel": "vercel --prod",
     "deploy:netlify": "netlify deploy --prod",
-    "deploy:gh-pages": "npm run build && gh-pages -d dist"
+    "deploy:gh-pages": "npm run build && gh-pages -d dist",
+    "postbuild": "node scripts/postbuild.cjs"
   },
   "devDependencies": {
+    "terser": "^5.44.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.3"
   },
@@ -23,4 +25,3 @@
     "@dimforge/rapier3d-compat": "^0.14.0"
   }
 }
-
