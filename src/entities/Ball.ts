@@ -20,6 +20,7 @@ export interface BallPool {
   activeBalls: Ball[];
   inactiveBalls: Ball[];
   maxBalls: number;
+  maxConcurrentBalls: number; // Maximum number of balls that can be active at once
 }
 
 export function createBall(
@@ -73,7 +74,8 @@ export function createBall(
 export function createBallPool(
   world: RAPIER.World,
   scene: Scene,
-  maxBalls: number = 50
+  maxBalls: number = 50,
+  maxConcurrentBalls: number = 10
 ): BallPool {
   const balls: Ball[] = [];
 
@@ -85,11 +87,16 @@ export function createBallPool(
     balls.push(ball);
   }
 
+  console.log(
+    `Ball pool created: ${maxBalls} total balls, max ${maxConcurrentBalls} concurrent`
+  );
+
   return {
     balls,
     activeBalls: [],
     inactiveBalls: [...balls], // All start inactive
     maxBalls,
+    maxConcurrentBalls,
   };
 }
 
@@ -97,15 +104,24 @@ export function spawnBall(
   ballPool: BallPool,
   spawnPosition: Vector3
 ): Ball | null {
-  // Check if we have any inactive balls available
-  if (ballPool.inactiveBalls.length === 0) {
-    console.log("No inactive balls available, recycling oldest ball");
-    // Recycle the oldest ball
+  // Check if we've reached the concurrent ball limit
+  if (ballPool.activeBalls.length >= ballPool.maxConcurrentBalls) {
+    console.log(
+      `Max concurrent balls reached (${ballPool.maxConcurrentBalls}), recycling oldest ball`
+    );
+    // Recycle the oldest ball to make room
     const oldestBall = ballPool.activeBalls.shift();
     if (oldestBall) {
       recycleBall(oldestBall);
       ballPool.inactiveBalls.push(oldestBall);
     }
+  }
+
+  // Check if we have any inactive balls available
+  if (ballPool.inactiveBalls.length === 0) {
+    console.warn("No inactive balls available in pool");
+    // This should not happen if maxConcurrentBalls <= maxBalls
+    return null;
   }
 
   // Get an inactive ball and reactivate it
@@ -115,16 +131,24 @@ export function spawnBall(
     return null;
   }
 
-  // Reset ball position and ALL physics state
-  ball.body.setTranslation(spawnPosition, true);
-  ball.body.setLinvel(new RAPIER.Vector3(0, 0, 0), true); // Zero velocity
-  ball.body.setAngvel(new RAPIER.Vector3(0, 0, 0), true); // Zero angular velocity
+  // Physics state reset - use plain objects to avoid WASM allocations
+  ball.body.setEnabled(true); // Re-enable physics simulation
+  ball.body.setTranslation(
+    { x: spawnPosition.x, y: spawnPosition.y, z: spawnPosition.z },
+    true
+  );
+  ball.body.setLinvel({ x: 0, y: 0, z: 0 }, true); // Zero velocity
+  ball.body.setAngvel({ x: 0, y: 0, z: 0 }, true); // Zero angular velocity
   ball.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true); // Reset rotation
+  ball.body.resetForces(true); // Clear any accumulated forces
+  ball.body.resetTorques(true); // Clear any accumulated torques
+  ball.body.wakeUp(); // Ensure not sleeping
 
-  // Reset mesh state
-  ball.mesh.position = spawnPosition;
+  // Mesh state reset
+  ball.mesh.position.copyFrom(spawnPosition);
+  ball.mesh.rotation.set(0, 0, 0);
   ball.mesh.rotationQuaternion = null;
-  ball.mesh.rotation = new Vector3(0, 0, 0);
+  ball.mesh.isVisible = true; // Make mesh visible
 
   ball.isActive = true;
 
@@ -141,16 +165,20 @@ export function recycleBall(ball: Ball): void {
 
   ball.isActive = false;
 
-  // Reset ALL physics state to prevent old velocity/rotation from carrying over
-  ball.body.setTranslation(new RAPIER.Vector3(0, -100, 0), true);
-  ball.body.setLinvel(new RAPIER.Vector3(0, 0, 0), true); // Reset linear velocity
-  ball.body.setAngvel(new RAPIER.Vector3(0, 0, 0), true); // Reset angular velocity
+  // Physics state reset - use plain objects to avoid WASM allocations
+  ball.body.setTranslation({ x: 0, y: -100, z: 0 }, true);
+  ball.body.setLinvel({ x: 0, y: 0, z: 0 }, true); // Reset linear velocity
+  ball.body.setAngvel({ x: 0, y: 0, z: 0 }, true); // Reset angular velocity
   ball.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true); // Reset rotation to identity
+  ball.body.resetForces(true); // Clear accumulated forces
+  ball.body.resetTorques(true); // Clear accumulated torques
+  ball.body.setEnabled(false); // Disable physics simulation (key performance optimization!)
 
-  // Reset mesh state
-  ball.mesh.position = new Vector3(0, -100, 0);
+  // Mesh state reset
+  ball.mesh.position.set(0, -100, 0);
+  ball.mesh.rotation.set(0, 0, 0);
   ball.mesh.rotationQuaternion = null;
-  ball.mesh.rotation = new Vector3(0, 0, 0);
+  ball.mesh.isVisible = false; // Hide mesh (better than moving off-screen)
 
   console.log(`Recycled ball ${ball.id}`);
 }
@@ -179,4 +207,28 @@ export function getBallScore(
   }
 
   return 0; // Default score if not in any bin
+}
+
+export function getActiveBallCount(ballPool: BallPool): number {
+  return ballPool.activeBalls.length;
+}
+
+export function canSpawnBall(ballPool: BallPool): boolean {
+  return ballPool.activeBalls.length < ballPool.maxConcurrentBalls;
+}
+
+export function getBallPoolStats(ballPool: BallPool): {
+  active: number;
+  inactive: number;
+  total: number;
+  maxConcurrent: number;
+  canSpawn: boolean;
+} {
+  return {
+    active: ballPool.activeBalls.length,
+    inactive: ballPool.inactiveBalls.length,
+    total: ballPool.maxBalls,
+    maxConcurrent: ballPool.maxConcurrentBalls,
+    canSpawn: canSpawnBall(ballPool),
+  };
 }

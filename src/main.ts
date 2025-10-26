@@ -71,7 +71,12 @@ initializeRapierWorld().then((physicsWorld) => {
   );
 
   // Create ball pool for managing balls (pre-creates all rigid bodies)
-  const ballPool = createBallPool(physicsWorld.world, gameScene.scene, 50); // Max 50 balls
+  const ballPool = createBallPool(
+    physicsWorld.world,
+    gameScene.scene,
+    50, // Max total balls in pool
+    10 // Max concurrent active balls
+  );
 
   // Create scoring system with callbacks
   const scoringSystem = createScoringSystem(
@@ -121,7 +126,9 @@ initializeRapierWorld().then((physicsWorld) => {
   console.log(
     `Total bins: ${binsInfo.bins.length}, Dividers: ${binBodies.binDividers.length}`
   );
-  console.log(`Ball pool created: max ${ballPool.maxBalls} balls`);
+  console.log(
+    `Ball pool: ${ballPool.maxBalls} total, max ${ballPool.maxConcurrentBalls} concurrent`
+  );
   console.log(`Input handler ready: cooldown ${inputHandler.cooldownMs}ms`);
   console.log(
     `Static bodies: ${staticBodies.leftWall ? "walls" : "none"}, ${

@@ -1,6 +1,6 @@
 import { Scene, Camera } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core";
-import { BallPool, spawnBall } from "../entities/Ball";
+import { BallPool, spawnBall, getBallPoolStats } from "../entities/Ball";
 import { ScoringSystem, recordBallDropped } from "../systems/ScoringSystem";
 
 export interface InputHandler {
@@ -67,11 +67,15 @@ export function createInputHandler(
         recordBallDropped(inputHandler.scoringSystem);
       }
 
+      // Log ball pool stats
+      const poolStats = getBallPoolStats(ballPool);
       console.log(
         `Ball spawned at x: ${spawnPosition.x.toFixed(2)}, y: ${
           spawnPosition.y
-        }`
+        } | Active: ${poolStats.active}/${poolStats.maxConcurrent}`
       );
+    } else {
+      console.warn("Failed to spawn ball - pool may be full");
     }
   };
 
@@ -91,6 +95,13 @@ export function setInputEnabled(handler: InputHandler, enabled: boolean): void {
 export function setCooldown(handler: InputHandler, cooldownMs: number): void {
   handler.cooldownMs = cooldownMs;
   console.log(`Spawn cooldown set to ${cooldownMs}ms`);
+}
+
+export function logBallPoolStatus(ballPool: BallPool): void {
+  const stats = getBallPoolStats(ballPool);
+  console.log(
+    `Ball Pool Status: ${stats.active}/${stats.maxConcurrent} active, ${stats.inactive} inactive, ${stats.total} total`
+  );
 }
 
 // Method 1: Simple 2D Screen-to-World Picking (current approach)
