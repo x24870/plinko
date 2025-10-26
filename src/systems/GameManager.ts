@@ -6,24 +6,28 @@ import {
   updateScoreDisplay,
   updateBallPoolDisplay,
 } from "../ui/UIManager";
+import { AudioManager, playResetSound } from "../audio/AudioManager";
 
 export interface GameManager {
   ballPool: BallPool;
   scoringSystem: ScoringSystem;
   ui: UIManager;
   isResetting: boolean;
+  audioManager?: AudioManager;
 }
 
 export function createGameManager(
   ballPool: BallPool,
   scoringSystem: ScoringSystem,
-  ui: UIManager
+  ui: UIManager,
+  audioManager?: AudioManager
 ): GameManager {
   return {
     ballPool,
     scoringSystem,
     ui,
     isResetting: false,
+    audioManager,
   };
 }
 
@@ -35,6 +39,11 @@ export function resetGame(gameManager: GameManager): void {
 
   console.log("=== RESETTING GAME ===");
   gameManager.isResetting = true;
+
+  // Play reset sound
+  if (gameManager.audioManager) {
+    playResetSound(gameManager.audioManager);
+  }
 
   // Reset ball pool (recycle all active balls)
   resetBallPool(gameManager.ballPool);

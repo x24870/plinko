@@ -22,6 +22,11 @@ import {
 import { createGameManager, resetGame } from "./systems/GameManager";
 import { createFPSCounter, toggleFPSCounter } from "./systems/FPSCounter";
 import { createMaterialManager } from "./visual/MaterialManager";
+import {
+  createAudioManager,
+  initializeAudio,
+  toggleAudio,
+} from "./audio/AudioManager";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
@@ -41,6 +46,10 @@ console.log("BabylonJS scene created successfully");
 
 // Create Material Manager for enhanced visuals
 const materialManager = createMaterialManager(gameScene.scene);
+
+// Create Audio Manager for sound effects
+const audioManager = createAudioManager();
+initializeAudio(audioManager);
 
 // Initialize physics world and create static bodies
 initializeRapierWorld().then((physicsWorld) => {
@@ -103,7 +112,7 @@ initializeRapierWorld().then((physicsWorld) => {
     materialManager
   );
 
-  // Create scoring system with UI callbacks
+  // Create scoring system with UI and audio callbacks
   const scoringSystem = createScoringSystem(
     (score) => {
       // Update UI when score changes
@@ -117,7 +126,8 @@ initializeRapierWorld().then((physicsWorld) => {
       // Show score notification when a ball lands
       showScoreNotification(ui, event.score);
       console.log(`Ball landed! Score: ${event.score}, Bin: ${event.binIndex}`);
-    }
+    },
+    audioManager
   );
 
   // Initialize UI display
@@ -139,7 +149,8 @@ initializeRapierWorld().then((physicsWorld) => {
     scoringSystem,
     binsInfo.bins,
     (binsInfo.bins[0]?.y ?? 0) - 0.5, // Bin floor Y (slightly below bin Y position)
-    fpsCounter
+    fpsCounter,
+    audioManager
   );
 
   // Setup input handler for spawning balls on click/touch
@@ -151,7 +162,8 @@ initializeRapierWorld().then((physicsWorld) => {
     pinGrid.topY + 2.5, // Spawn Y position
     -2, // Spawn Z position
     gameScene.camera, // Pass camera for improved 3D picking
-    scoringSystem // Pass scoring system to track dropped balls
+    scoringSystem, // Pass scoring system to track dropped balls
+    audioManager // Pass audio manager for sound effects
   );
 
   // Hide instructions after first ball drop
@@ -164,7 +176,12 @@ initializeRapierWorld().then((physicsWorld) => {
   });
 
   // Create game manager for coordinated resets
-  const gameManager = createGameManager(ballPool, scoringSystem, ui);
+  const gameManager = createGameManager(
+    ballPool,
+    scoringSystem,
+    ui,
+    audioManager
+  );
 
   // Setup reset button
   onResetButtonClick(ui, () => {
@@ -189,6 +206,11 @@ initializeRapierWorld().then((physicsWorld) => {
       resetGame(gameManager);
       firstBallDropped = false;
     }
+    // Toggle audio with 'M' key (Mute)
+    if (event.key === "m" || event.key === "M") {
+      const isEnabled = toggleAudio(audioManager);
+      console.log(`Audio ${isEnabled ? "enabled" : "muted"}`);
+    }
   });
 
   // FPS counter is hidden by default, press 'F' to toggle
@@ -199,6 +221,7 @@ initializeRapierWorld().then((physicsWorld) => {
   console.log("Keyboard shortcuts:");
   console.log("  F - Toggle FPS counter");
   console.log("  R - Reset game");
+  console.log("  M - Toggle audio (mute/unmute)");
 
   console.log("Static walls and ground created successfully");
   console.log("Pin grid created successfully");

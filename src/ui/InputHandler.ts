@@ -2,12 +2,18 @@ import { Scene, Camera } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core";
 import { BallPool, spawnBall, getBallPoolStats } from "../entities/Ball";
 import { ScoringSystem, recordBallDropped } from "../systems/ScoringSystem";
+import {
+  AudioManager,
+  playSpawnSound,
+  resumeAudioContext,
+} from "../audio/AudioManager";
 
 export interface InputHandler {
   enabled: boolean;
   lastSpawnTime: number;
   cooldownMs: number;
   scoringSystem?: ScoringSystem;
+  audioManager?: AudioManager;
 }
 
 export function createInputHandler(
@@ -17,13 +23,15 @@ export function createInputHandler(
   spawnY: number,
   spawnZ: number = 0.3,
   camera?: Camera,
-  scoringSystem?: ScoringSystem
+  scoringSystem?: ScoringSystem,
+  audioManager?: AudioManager
 ): InputHandler {
   const inputHandler: InputHandler = {
     enabled: true,
     lastSpawnTime: 0,
     cooldownMs: 300, // 0.3 second cooldown between spawns
     scoringSystem,
+    audioManager,
   };
 
   // Handle pointer/touch events
@@ -57,6 +65,11 @@ export function createInputHandler(
       // Fallback to simple 2D method
       spawnPosition = screenToWorldPosition2D(event, canvas, spawnY, spawnZ);
     }
+    // Resume audio context on first user interaction
+    if (inputHandler.audioManager) {
+      resumeAudioContext(inputHandler.audioManager);
+    }
+
     const ball = spawnBall(ballPool, spawnPosition);
 
     if (ball) {
@@ -65,6 +78,11 @@ export function createInputHandler(
       // Record ball dropped in scoring system
       if (inputHandler.scoringSystem) {
         recordBallDropped(inputHandler.scoringSystem);
+      }
+
+      // Play spawn sound
+      if (inputHandler.audioManager) {
+        playSpawnSound(inputHandler.audioManager);
       }
 
       // Log ball pool stats

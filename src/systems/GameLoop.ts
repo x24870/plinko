@@ -10,6 +10,7 @@ import {
 import { ScoringSystem, recordBallLanded } from "./ScoringSystem";
 import { Bin } from "../entities/ScoringBins";
 import { FPSCounter, updateFPSCounter } from "./FPSCounter";
+import { AudioManager, playCollisionSound } from "../audio/AudioManager";
 
 export interface GameLoop {
   isRunning: boolean;
@@ -19,6 +20,7 @@ export interface GameLoop {
   bins?: Bin[];
   binFloorY?: number;
   fpsCounter?: FPSCounter;
+  audioManager?: AudioManager;
 }
 
 export function createGameLoop(
@@ -30,7 +32,8 @@ export function createGameLoop(
   scoringSystem?: ScoringSystem,
   bins?: Bin[],
   binFloorY?: number,
-  fpsCounter?: FPSCounter
+  fpsCounter?: FPSCounter,
+  audioManager?: AudioManager
 ): GameLoop {
   const gameLoop: GameLoop = {
     isRunning: false,
@@ -40,6 +43,7 @@ export function createGameLoop(
     bins,
     binFloorY,
     fpsCounter,
+    audioManager,
   };
 
   // Create event queue to handle collisions
@@ -70,6 +74,16 @@ export function createGameLoop(
             const randomForceX = (Math.random() - 0.5) * 0.006; // -0.3 to 0.3
             const impulse = { x: randomForceX, y: 0, z: 0 };
             ball.body.applyImpulse(impulse, true);
+
+            // Play collision sound
+            if (gameLoop.audioManager) {
+              const velocity = ball.body.linvel();
+              const speed = Math.sqrt(
+                velocity.x ** 2 + velocity.y ** 2 + velocity.z ** 2
+              );
+              playCollisionSound(gameLoop.audioManager, speed);
+            }
+
             break; // Found the ball, no need to continue
           }
         }

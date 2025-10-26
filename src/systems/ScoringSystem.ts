@@ -1,4 +1,5 @@
 import { Ball } from "../entities/Ball";
+import { AudioManager, playScoreSound } from "../audio/AudioManager";
 
 export interface GameScore {
   totalScore: number;
@@ -19,11 +20,13 @@ export interface ScoringSystem {
   gameScore: GameScore;
   onScoreUpdate?: (score: GameScore) => void;
   onBallLanded?: (event: ScoreEvent) => void;
+  audioManager?: AudioManager;
 }
 
 export function createScoringSystem(
   onScoreUpdate?: (score: GameScore) => void,
-  onBallLanded?: (event: ScoreEvent) => void
+  onBallLanded?: (event: ScoreEvent) => void,
+  audioManager?: AudioManager
 ): ScoringSystem {
   const gameScore: GameScore = {
     totalScore: 0,
@@ -37,6 +40,7 @@ export function createScoringSystem(
     gameScore,
     onScoreUpdate,
     onBallLanded,
+    audioManager,
   };
 }
 
@@ -74,6 +78,11 @@ export function recordBallLanded(
   console.log(
     `Ball ${ball.id} landed in bin ${binIndex} - Score: ${event.score} (Total: ${scoringSystem.gameScore.totalScore})`
   );
+
+  // Play score sound
+  if (scoringSystem.audioManager) {
+    playScoreSound(scoringSystem.audioManager, event.score);
+  }
 
   // Trigger callbacks
   if (scoringSystem.onBallLanded) {
