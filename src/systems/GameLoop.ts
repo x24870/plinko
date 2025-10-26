@@ -9,6 +9,7 @@ import {
 } from "../entities/Ball";
 import { ScoringSystem, recordBallLanded } from "./ScoringSystem";
 import { Bin } from "../entities/ScoringBins";
+import { FPSCounter, updateFPSCounter } from "./FPSCounter";
 
 export interface GameLoop {
   isRunning: boolean;
@@ -17,6 +18,7 @@ export interface GameLoop {
   scoringSystem?: ScoringSystem;
   bins?: Bin[];
   binFloorY?: number;
+  fpsCounter?: FPSCounter;
 }
 
 export function createGameLoop(
@@ -27,7 +29,8 @@ export function createGameLoop(
   ballPool: BallPool,
   scoringSystem?: ScoringSystem,
   bins?: Bin[],
-  binFloorY?: number
+  binFloorY?: number,
+  fpsCounter?: FPSCounter
 ): GameLoop {
   const gameLoop: GameLoop = {
     isRunning: false,
@@ -36,6 +39,7 @@ export function createGameLoop(
     scoringSystem,
     bins,
     binFloorY,
+    fpsCounter,
   };
 
   // Create event queue to handle collisions
@@ -117,6 +121,11 @@ export function createGameLoop(
         recycleBall(ball);
         gameLoop.ballPool.inactiveBalls.push(ball);
       }
+    }
+
+    // Update FPS counter if enabled
+    if (gameLoop.fpsCounter) {
+      updateFPSCounter(gameLoop.fpsCounter);
     }
 
     // Continue the loop

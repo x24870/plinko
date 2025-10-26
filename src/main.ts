@@ -15,8 +15,12 @@ import {
   showScoreNotification,
   hideInstructions,
   onResetButtonClick,
+  updateFPS,
+  showFPSCounter,
+  hideFPSCounter,
 } from "./ui/UIManager";
 import { createGameManager, resetGame } from "./systems/GameManager";
+import { createFPSCounter, toggleFPSCounter } from "./systems/FPSCounter";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
@@ -111,6 +115,11 @@ initializeRapierWorld().then((physicsWorld) => {
   updateScoreDisplay(ui, scoringSystem.gameScore);
   updateBallPoolDisplay(ui, ballPool);
 
+  // Create FPS counter with UI update callback
+  const fpsCounter = createFPSCounter(500, (fps) => {
+    updateFPS(ui, fps);
+  });
+
   // Start the game loop with physics synchronization and scoring
   createGameLoop(
     physicsWorld.world,
@@ -120,7 +129,8 @@ initializeRapierWorld().then((physicsWorld) => {
     ballPool,
     scoringSystem,
     binsInfo.bins,
-    (binsInfo.bins[0]?.y ?? 0) - 0.5 // Bin floor Y (slightly below bin Y position)
+    (binsInfo.bins[0]?.y ?? 0) - 0.5, // Bin floor Y (slightly below bin Y position)
+    fpsCounter
   );
 
   // Setup input handler for spawning balls on click/touch
@@ -153,6 +163,33 @@ initializeRapierWorld().then((physicsWorld) => {
     // Reset first ball dropped flag
     firstBallDropped = false;
   });
+
+  // Setup keyboard shortcuts
+  window.addEventListener("keydown", (event) => {
+    // Toggle FPS counter with 'F' key
+    if (event.key === "f" || event.key === "F") {
+      const isEnabled = toggleFPSCounter(fpsCounter);
+      if (isEnabled) {
+        showFPSCounter(ui);
+      } else {
+        hideFPSCounter(ui);
+      }
+    }
+    // Reset game with 'R' key
+    if (event.key === "r" || event.key === "R") {
+      resetGame(gameManager);
+      firstBallDropped = false;
+    }
+  });
+
+  // FPS counter is hidden by default, press 'F' to toggle
+  // Uncomment the lines below to enable FPS counter by default:
+  // enableFPSCounter(fpsCounter);
+  // showFPSCounter(ui);
+
+  console.log("Keyboard shortcuts:");
+  console.log("  F - Toggle FPS counter");
+  console.log("  R - Reset game");
 
   console.log("Static walls and ground created successfully");
   console.log("Pin grid created successfully");
