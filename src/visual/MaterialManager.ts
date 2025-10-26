@@ -1,4 +1,5 @@
-import { Scene, StandardMaterial, Color3 } from "@babylonjs/core";
+import { Scene, StandardMaterial, Color3, Texture } from "@babylonjs/core";
+import { createWoodTexture, createPlinkoTexture } from "./ProceduralTextures";
 
 export interface MaterialManager {
   scene: Scene;
@@ -38,9 +39,60 @@ export function createMaterialManager(scene: Scene): MaterialManager {
   pinMaterial.specularPower = 64;
   pinMaterial.emissiveColor = new Color3(0.1, 0.1, 0.12);
 
-  // Back board material - dark textured
+  // Back board material with procedural or image texture
   const backBoardMaterial = new StandardMaterial("backBoardMaterial", scene);
-  backBoardMaterial.diffuseColor = new Color3(0.15, 0.15, 0.2);
+
+  // Option 1: Try to load custom image texture
+  const useCustomTexture = true; // Set to true if you have board-texture.jpg in public/textures/
+
+  if (useCustomTexture) {
+    try {
+      const texture = new Texture(
+        "/textures/casino-girl.png",
+        scene,
+        false,
+        true
+      );
+      texture.onLoadObservable.addOnce(() => {
+        console.log("✅ Custom board texture loaded successfully!");
+        console.log("Texture size:", texture.getSize());
+
+        // Fix texture orientation
+        texture.vScale = -1; // Flip vertically
+        texture.vOffset = 1; // Adjust offset after flip
+
+        // Adjust texture size and repetition
+        texture.uScale = 1; // Horizontal scale (1 = normal size)
+        texture.vScale = -1; // Vertical scale (-1 = flipped)
+        texture.wrapU = Texture.CLAMP_ADDRESSMODE; // Don't repeat horizontally
+        texture.wrapV = Texture.CLAMP_ADDRESSMODE; // Don't repeat vertically
+
+        // If still upside down, try horizontal flip instead:
+        // texture.uScale = -1;  // Flip horizontally
+        // texture.uOffset = 1;  // Adjust offset after flip
+      });
+
+      // Add timeout to detect if texture fails to load
+      setTimeout(() => {
+        if (!texture.isReady()) {
+          console.log("⚠️ Texture failed to load, using procedural fallback");
+          backBoardMaterial.diffuseTexture = createPlinkoTexture(scene, 512);
+        }
+      }, 3000);
+
+      backBoardMaterial.diffuseTexture = texture;
+    } catch (error) {
+      // panic
+      console.log("Using procedural texture");
+      backBoardMaterial.diffuseTexture = createPlinkoTexture(scene, 512);
+    }
+  } else {
+    // Option 2: Use procedural texture (no image file needed)
+    // Choose one of: createWoodTexture, createCarbonFiberTexture, createPlinkoTexture
+    backBoardMaterial.diffuseTexture = createWoodTexture(scene, 512);
+    console.log("✅ Using procedural wood texture for board");
+  }
+
   backBoardMaterial.specularColor = new Color3(0.2, 0.2, 0.25);
   backBoardMaterial.specularPower = 16;
   backBoardMaterial.emissiveColor = new Color3(0.05, 0.05, 0.08);
