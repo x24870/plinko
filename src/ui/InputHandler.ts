@@ -1,11 +1,13 @@
 import { Scene, Camera } from "@babylonjs/core";
 import { Vector3 } from "@babylonjs/core";
 import { BallPool, spawnBall } from "../entities/Ball";
+import { ScoringSystem, recordBallDropped } from "../systems/ScoringSystem";
 
 export interface InputHandler {
   enabled: boolean;
   lastSpawnTime: number;
   cooldownMs: number;
+  scoringSystem?: ScoringSystem;
 }
 
 export function createInputHandler(
@@ -14,12 +16,14 @@ export function createInputHandler(
   ballPool: BallPool,
   spawnY: number,
   spawnZ: number = 0.3,
-  camera?: Camera
+  camera?: Camera,
+  scoringSystem?: ScoringSystem
 ): InputHandler {
   const inputHandler: InputHandler = {
     enabled: true,
     lastSpawnTime: 0,
     cooldownMs: 300, // 0.3 second cooldown between spawns
+    scoringSystem,
   };
 
   // Handle pointer/touch events
@@ -57,6 +61,12 @@ export function createInputHandler(
 
     if (ball) {
       inputHandler.lastSpawnTime = currentTime;
+
+      // Record ball dropped in scoring system
+      if (inputHandler.scoringSystem) {
+        recordBallDropped(inputHandler.scoringSystem);
+      }
+
       console.log(
         `Ball spawned at x: ${spawnPosition.x.toFixed(2)}, y: ${
           spawnPosition.y

@@ -1,11 +1,22 @@
 import * as RAPIER from "@dimforge/rapier3d-compat";
 import { Scene, Engine, Quaternion } from "@babylonjs/core";
-import { Ball, BallPool } from "../entities/Ball";
+import {
+  Ball,
+  BallPool,
+  recycleBall,
+  checkBallLanded,
+  getBallScore,
+} from "../entities/Ball";
+import { ScoringSystem, recordBallLanded } from "./ScoringSystem";
+import { Bin } from "../entities/ScoringBins";
 
 export interface GameLoop {
   isRunning: boolean;
   lastTime: number;
   ballPool?: BallPool;
+  scoringSystem?: ScoringSystem;
+  bins?: Bin[];
+  binFloorY?: number;
 }
 
 export function createGameLoop(
@@ -13,12 +24,18 @@ export function createGameLoop(
   _scene: Scene,
   _engine: Engine,
   _timestep: number,
-  ballPool: BallPool
+  ballPool: BallPool,
+  scoringSystem?: ScoringSystem,
+  bins?: Bin[],
+  binFloorY?: number
 ): GameLoop {
   const gameLoop: GameLoop = {
     isRunning: false,
     lastTime: 0,
     ballPool,
+    scoringSystem,
+    bins,
+    binFloorY,
   };
 
   // Create event queue to handle collisions
@@ -55,10 +72,50 @@ export function createGameLoop(
       }
     });
 
-    // Sync all active balls with their meshes
+    // Sync all active balls with their meshes and check for scoring
     if (gameLoop.ballPool) {
+      const ballsToRecycle: Ball[] = [];
+
       for (const ball of gameLoop.ballPool.activeBalls) {
         syncBallWithMesh(ball);
+
+        // Check if ball has landed in a bin
+        if (
+          gameLoop.binFloorY !== undefined &&
+          checkBallLanded(ball, gameLoop.binFloorY)
+        ) {
+          // Calculate score
+          if (gameLoop.bins && gameLoop.scoringSystem) {
+            const score = getBallScore(ball, gameLoop.bins);
+            const position = ball.body.translation();
+
+            // Find which bin index
+            let binIndex = -1;
+            for (let i = 0; i < gameLoop.bins.length; i++) {
+              const bin = gameLoop.bins[i];
+              if (bin && position.x >= bin.x0 && position.x < bin.x1) {
+                binIndex = i;
+                break;
+              }
+            }
+
+            // Record the score
+            recordBallLanded(gameLoop.scoringSystem, ball, score, binIndex);
+          }
+
+          // Mark ball for recycling
+          ballsToRecycle.push(ball);
+        }
+      }
+
+      // Recycle balls that have landed
+      for (const ball of ballsToRecycle) {
+        const index = gameLoop.ballPool.activeBalls.indexOf(ball);
+        if (index > -1) {
+          gameLoop.ballPool.activeBalls.splice(index, 1);
+        }
+        recycleBall(ball);
+        gameLoop.ballPool.inactiveBalls.push(ball);
       }
     }
 

@@ -7,6 +7,7 @@ import { generateBins, createBinBodies } from "./entities/ScoringBins";
 import { createBallPool } from "./entities/Ball";
 import { createGameLoop } from "./systems/GameLoop";
 import { createInputHandler } from "./ui/InputHandler";
+import { createScoringSystem } from "./systems/ScoringSystem";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
@@ -72,13 +73,30 @@ initializeRapierWorld().then((physicsWorld) => {
   // Create ball pool for managing balls (pre-creates all rigid bodies)
   const ballPool = createBallPool(physicsWorld.world, gameScene.scene, 50); // Max 50 balls
 
-  // Start the game loop with physics synchronization
+  // Create scoring system with callbacks
+  const scoringSystem = createScoringSystem(
+    (score) => {
+      // Update UI when score changes
+      console.log(
+        `Score updated: ${score.totalScore} (${score.ballsLanded}/${score.ballsDropped} balls)`
+      );
+    },
+    (event) => {
+      // Log when a ball lands
+      console.log(`Ball landed! Score: ${event.score}, Bin: ${event.binIndex}`);
+    }
+  );
+
+  // Start the game loop with physics synchronization and scoring
   createGameLoop(
     physicsWorld.world,
     gameScene.scene,
     gameScene.engine,
     physicsWorld.timestep,
-    ballPool
+    ballPool,
+    scoringSystem,
+    binsInfo.bins,
+    (binsInfo.bins[0]?.y ?? 0) - 0.5 // Bin floor Y (slightly below bin Y position)
   );
 
   // Setup input handler for spawning balls on click/touch
@@ -88,7 +106,8 @@ initializeRapierWorld().then((physicsWorld) => {
     ballPool,
     pinGrid.topY + 2.5, // Spawn Y position
     -2, // Spawn Z position
-    gameScene.camera // Pass camera for improved 3D picking
+    gameScene.camera, // Pass camera for improved 3D picking
+    scoringSystem // Pass scoring system to track dropped balls
   );
 
   console.log("Static walls and ground created successfully");
