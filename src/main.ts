@@ -27,9 +27,17 @@ import {
   initializeAudio,
   toggleAudio,
 } from "./audio/AudioManager";
+import {
+  createLoadingManager,
+  createProgressTracker,
+} from "./ui/LoadingManager";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
+
+// Initialize loading screen
+const loadingManager = createLoadingManager();
+const progress = createProgressTracker(loadingManager);
 
 // Initialize the game
 const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
@@ -43,6 +51,7 @@ const ui = createUIManager();
 // Create BabylonJS scene
 const gameScene = createScene(canvas);
 console.log("BabylonJS scene created successfully");
+progress.markSceneReady();
 
 // Create Material Manager for enhanced visuals
 const materialManager = createMaterialManager(gameScene.scene);
@@ -56,6 +65,7 @@ initializeRapierWorld().then((physicsWorld) => {
   console.log("Physics world initialized successfully");
   console.log("Gravity:", physicsWorld.gravity);
   console.log("Timestep:", physicsWorld.timestep);
+  progress.markPhysicsReady();
 
   // Generate rectangular pin grid
   const pinGrid = generateRectanglePins({
@@ -112,6 +122,8 @@ initializeRapierWorld().then((physicsWorld) => {
     materialManager
   );
 
+  progress.markEntitiesReady();
+
   // Create scoring system with UI and audio callbacks
   const scoringSystem = createScoringSystem(
     (score) => {
@@ -152,6 +164,8 @@ initializeRapierWorld().then((physicsWorld) => {
     fpsCounter,
     audioManager
   );
+
+  progress.markSystemsReady();
 
   // Setup input handler for spawning balls on click/touch
   let firstBallDropped = false;
@@ -217,6 +231,9 @@ initializeRapierWorld().then((physicsWorld) => {
   // Uncomment the lines below to enable FPS counter by default:
   // enableFPSCounter(fpsCounter);
   // showFPSCounter(ui);
+
+  // Mark UI ready and hide loading screen
+  progress.markUIReady();
 
   console.log("Keyboard shortcuts:");
   console.log("  F - Toggle FPS counter");

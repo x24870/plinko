@@ -8,6 +8,19 @@
     <title>Plinko Game</title>
   </head>
   <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h1>Plinko</h1>
+        <p class="loading-text">Loading game...</p>
+        <div class="loading-bar">
+          <div class="loading-progress" id="loading-progress"></div>
+        </div>
+        <p class="loading-tip">Tip: Click anywhere to drop a ball!</p>
+      </div>
+    </div>
+
     <div id="app">
       <canvas id="renderCanvas"></canvas>
       <div id="ui-overlay">
