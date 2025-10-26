@@ -8,6 +8,14 @@ import { createBallPool } from "./entities/Ball";
 import { createGameLoop } from "./systems/GameLoop";
 import { createInputHandler } from "./ui/InputHandler";
 import { createScoringSystem } from "./systems/ScoringSystem";
+import {
+  createUIManager,
+  updateScoreDisplay,
+  updateBallPoolDisplay,
+  showScoreNotification,
+  hideInstructions,
+  onResetButtonClick,
+} from "./ui/UIManager";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
@@ -17,6 +25,9 @@ const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
 if (!canvas) {
   throw new Error("Canvas element not found!");
 }
+
+// Create UI Manager
+const ui = createUIManager();
 
 // Create BabylonJS scene
 const gameScene = createScene(canvas);
@@ -78,19 +89,26 @@ initializeRapierWorld().then((physicsWorld) => {
     10 // Max concurrent active balls
   );
 
-  // Create scoring system with callbacks
+  // Create scoring system with UI callbacks
   const scoringSystem = createScoringSystem(
     (score) => {
       // Update UI when score changes
+      updateScoreDisplay(ui, score);
+      updateBallPoolDisplay(ui, ballPool);
       console.log(
         `Score updated: ${score.totalScore} (${score.ballsLanded}/${score.ballsDropped} balls)`
       );
     },
     (event) => {
-      // Log when a ball lands
+      // Show score notification when a ball lands
+      showScoreNotification(ui, event.score);
       console.log(`Ball landed! Score: ${event.score}, Bin: ${event.binIndex}`);
     }
   );
+
+  // Initialize UI display
+  updateScoreDisplay(ui, scoringSystem.gameScore);
+  updateBallPoolDisplay(ui, ballPool);
 
   // Start the game loop with physics synchronization and scoring
   createGameLoop(
@@ -105,6 +123,7 @@ initializeRapierWorld().then((physicsWorld) => {
   );
 
   // Setup input handler for spawning balls on click/touch
+  let firstBallDropped = false;
   const inputHandler = createInputHandler(
     canvas,
     gameScene.scene,
@@ -114,6 +133,22 @@ initializeRapierWorld().then((physicsWorld) => {
     gameScene.camera, // Pass camera for improved 3D picking
     scoringSystem // Pass scoring system to track dropped balls
   );
+
+  // Hide instructions after first ball drop
+  canvas.addEventListener("pointerdown", () => {
+    if (!firstBallDropped) {
+      firstBallDropped = true;
+      hideInstructions(ui);
+    }
+    updateBallPoolDisplay(ui, ballPool);
+  });
+
+  // Setup reset button
+  onResetButtonClick(ui, () => {
+    console.log(
+      "Reset button clicked - functionality to be implemented in Step 14"
+    );
+  });
 
   console.log("Static walls and ground created successfully");
   console.log("Pin grid created successfully");

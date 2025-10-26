@@ -36,17 +36,106 @@ body {
   z-index: 10;
 }
 
-#score-display {
+/* Score Panel */
+#score-panel {
   position: absolute;
   top: 20px;
   right: 20px;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.85);
   color: white;
-  padding: 10px 15px;
-  border-radius: 8px;
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 150px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.score-item.small {
+  font-size: 0.85em;
+}
+
+.score-label {
+  font-size: 12px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #4CAF50;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.score-item.small .score-value {
+  font-size: 16px;
+}
+
+/* Instructions */
+#instructions {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 25px;
   font-size: 18px;
   font-weight: bold;
   pointer-events: none;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* Score Notification */
+#score-notification {
+  position: absolute;
+  top: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 215, 0, 0.95);
+  color: #333;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+#score-notification.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px);
+}
+
+#score-notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  animation: scorePopup 1.5s ease-out;
+}
+
+@keyframes scorePopup {
+  0% { transform: translateX(-50%) translateY(0) scale(0.5); opacity: 0; }
+  50% { transform: translateX(-50%) translateY(0) scale(1.2); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
 }
 
 #controls {
@@ -60,29 +149,59 @@ body {
 }
 
 #controls button {
-  background: #4CAF50;
   color: white;
   border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 25px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s;
-  min-width: 100px;
+  transition: all 0.2s;
+  min-width: 120px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-#controls button:hover {
-  background: #45a049;
+#controls button.btn-primary {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
 }
 
-#controls button:active {
-  background: #3d8b40;
+#controls button.btn-primary:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+#controls button.btn-primary:active {
+  background: linear-gradient(135deg, #3d8b40, #2d6b2f);
+  transform: translateY(0);
+}
+
+#controls button.btn-secondary {
+  background: linear-gradient(135deg, #666, #555);
+}
+
+#controls button.btn-secondary:hover {
+  background: linear-gradient(135deg, #777, #666);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+#controls button.btn-secondary:active {
+  background: linear-gradient(135deg, #555, #444);
+  transform: translateY(0);
 }
 
 #controls button:disabled {
-  background: #666;
+  background: #444;
   cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.hidden {
+  display: none !important;
 }
 
 #fps-counter {
@@ -100,14 +219,39 @@ body {
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-  #score-display {
+  #score-panel {
+    top: 10px;
+    right: 10px;
+    padding: 12px;
+    min-width: 130px;
+  }
+
+  .score-value {
+    font-size: 20px;
+  }
+
+  .score-item.small .score-value {
+    font-size: 14px;
+  }
+
+  #instructions {
     font-size: 16px;
-    padding: 8px 12px;
+    padding: 12px 24px;
+  }
+
+  #score-notification {
+    font-size: 20px;
+    padding: 8px 16px;
   }
   
   #controls button {
-    padding: 10px 16px;
+    padding: 10px 20px;
     font-size: 14px;
-    min-width: 80px;
+    min-width: 100px;
+  }
+
+  #fps-counter {
+    font-size: 12px;
+    padding: 4px 8px;
   }
 }
