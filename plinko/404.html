@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Plinko Game</title>
+    <script type="module" crossorigin src="/plinko/assets/index-D7pBQiT5.js"></script>
+    <link rel="modulepreload" crossorigin href="/plinko/assets/babylon-42_bUzQY.js">
+    <link rel="modulepreload" crossorigin href="/plinko/assets/rapier-Ba2T-_GQ.js">
+    <link rel="stylesheet" crossorigin href="/plinko/assets/index-Dtb5J4Cp.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="renderCanvas"></canvas>
+      <div id="ui-overlay">
+        <!-- Score Panel -->
+        <div id="score-panel">
+          <div class="score-item">
+            <div class="score-label">Score</div>
+            <div class="score-value" id="total-score">0</div>
+          </div>
+          <div class="score-item small">
+            <div class="score-label">Balls</div>
+            <div class="score-value" id="balls-count">0/0</div>
+          </div>
+          <div class="score-item small">
+            <div class="score-label">Active</div>
+            <div class="score-value" id="active-balls">0/10</div>
+          </div>
+        </div>
+
+        <!-- Instructions -->
+        <div id="instructions">
+          Tap to drop ball
+        </div>
+
+        <!-- Last Score Notification -->
+        <div id="score-notification" class="hidden">
+          +<span id="notification-score">0</span>
+        </div>
+
+        <!-- Controls -->
+        <div id="controls">
+          <button id="reset-btn" class="btn-secondary">Reset</button>
+        </div>
+
+        <!-- FPS Counter -->
+        <div id="fps-counter" class="hidden">
+          FPS: <span id="fps">60</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
