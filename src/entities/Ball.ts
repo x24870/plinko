@@ -115,9 +115,17 @@ export function spawnBall(
     return null;
   }
 
-  // Reset ball position and reactivate
+  // Reset ball position and ALL physics state
   ball.body.setTranslation(spawnPosition, true);
+  ball.body.setLinvel(new RAPIER.Vector3(0, 0, 0), true); // Zero velocity
+  ball.body.setAngvel(new RAPIER.Vector3(0, 0, 0), true); // Zero angular velocity
+  ball.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true); // Reset rotation
+
+  // Reset mesh state
   ball.mesh.position = spawnPosition;
+  ball.mesh.rotationQuaternion = null;
+  ball.mesh.rotation = new Vector3(0, 0, 0);
+
   ball.isActive = true;
 
   ballPool.activeBalls.push(ball);
@@ -133,9 +141,16 @@ export function recycleBall(ball: Ball): void {
 
   ball.isActive = false;
 
-  // Move ball far away (invisible) - rigid body stays in world for reuse
+  // Reset ALL physics state to prevent old velocity/rotation from carrying over
   ball.body.setTranslation(new RAPIER.Vector3(0, -100, 0), true);
+  ball.body.setLinvel(new RAPIER.Vector3(0, 0, 0), true); // Reset linear velocity
+  ball.body.setAngvel(new RAPIER.Vector3(0, 0, 0), true); // Reset angular velocity
+  ball.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true); // Reset rotation to identity
+
+  // Reset mesh state
   ball.mesh.position = new Vector3(0, -100, 0);
+  ball.mesh.rotationQuaternion = null;
+  ball.mesh.rotation = new Vector3(0, 0, 0);
 
   console.log(`Recycled ball ${ball.id}`);
 }

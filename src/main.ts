@@ -4,9 +4,9 @@ import { initializeRapierWorld } from "./physics/rapierWorld";
 import { createStaticBodies } from "./physics/staticBodies";
 import { generateRectanglePins, createPinBodies } from "./entities/PegGrid";
 import { generateBins, createBinBodies } from "./entities/ScoringBins";
-import { createBallPool, spawnBall } from "./entities/Ball";
+import { createBallPool } from "./entities/Ball";
 import { createGameLoop } from "./systems/GameLoop";
-import { Vector3 } from "@babylonjs/core";
+import { createInputHandler } from "./ui/InputHandler";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
@@ -72,17 +72,23 @@ initializeRapierWorld().then((physicsWorld) => {
   // Create ball pool for managing balls (pre-creates all rigid bodies)
   const ballPool = createBallPool(physicsWorld.world, gameScene.scene, 50); // Max 50 balls
 
-  // Test: Spawn a ball at the top of the board
-  const testBallPosition = new Vector3(0, pinGrid.topY + 2, -2);
-  const testBall = spawnBall(ballPool, testBallPosition);
-
-  // Start the game loop with physics synchronization AFTER spawning balls
+  // Start the game loop with physics synchronization
   createGameLoop(
     physicsWorld.world,
     gameScene.scene,
     gameScene.engine,
     physicsWorld.timestep,
     ballPool
+  );
+
+  // Setup input handler for spawning balls on click/touch
+  const inputHandler = createInputHandler(
+    canvas,
+    gameScene.scene,
+    ballPool,
+    pinGrid.topY + 2.5, // Spawn Y position
+    -2, // Spawn Z position
+    gameScene.camera // Pass camera for improved 3D picking
   );
 
   console.log("Static walls and ground created successfully");
@@ -97,7 +103,7 @@ initializeRapierWorld().then((physicsWorld) => {
     `Total bins: ${binsInfo.bins.length}, Dividers: ${binBodies.binDividers.length}`
   );
   console.log(`Ball pool created: max ${ballPool.maxBalls} balls`);
-  console.log(`Test ball spawned: ${testBall ? testBall.id : "failed"}`);
+  console.log(`Input handler ready: cooldown ${inputHandler.cooldownMs}ms`);
   console.log(
     `Static bodies: ${staticBodies.leftWall ? "walls" : "none"}, ${
       staticBodies.ground ? "ground" : "none"
