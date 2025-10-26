@@ -31,13 +31,28 @@ import {
   createLoadingManager,
   createProgressTracker,
 } from "./ui/LoadingManager";
+import {
+  detectBrowser,
+  showBrowserWarning,
+  logBrowserInfo,
+} from "./utils/browserDetect";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
 
+// Detect browser and check compatibility
+const browserInfo = detectBrowser();
+logBrowserInfo(browserInfo);
+
 // Initialize loading screen
 const loadingManager = createLoadingManager();
 const progress = createProgressTracker(loadingManager);
+
+// Show warning if using in-app browser
+if (browserInfo.isInAppBrowser) {
+  showBrowserWarning(browserInfo);
+  // Continue loading anyway, but user is warned
+}
 
 // Global error handler for loading failures
 window.addEventListener("error", (event) => {
