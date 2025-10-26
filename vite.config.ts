@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   // Base URL for deployment (change if deploying to subdirectory)
-  base: "/plinko",
+  base: "/plinko/",
 
   // Build optimization
   build: {
@@ -14,6 +14,7 @@ export default defineConfig({
         drop_debugger: true,
       },
     },
+    assetsDir: "assets", // 所有 js/css/圖片/wasm 會放在 /plinko/assets/...
     rollupOptions: {
       output: {
         manualChunks: {
