@@ -31,12 +31,12 @@ export function createScene(canvas: HTMLCanvasElement): GameScene {
     Math.PI / 2, // alpha: horizontal rotation (0 = front, -π/2 = right)
     Math.PI / 3, // beta: vertical rotation (π/2 = top, π/3 = angled down)
     30, // radius: distance from target
-    new Vector3(0, 0, 0), // target: center of the scene
+    new Vector3(0, 10, 0), // target: center of the scene
     scene
   );
 
   // Attach camera controls
-  camera.attachControl(canvas, true);
+  // camera.attachControl(canvas, true);
 
   // Create lighting
   const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
