@@ -57,6 +57,48 @@ export function generateTrianglePins(params?: {
   return { pins, s, v, topY, binsY, bottomWidth, rows: R };
 }
 
+// Generate rectangular pin grid with staggered rows
+export function generateRectanglePins(params?: {
+  rows?: number;
+  cols?: number;
+  spacingX?: number;
+  spacingY?: number;
+  topY?: number;
+}): PinGrid {
+  const rows = params?.rows ?? 12;
+  const cols = params?.cols ?? 10;
+  const spacingX = params?.spacingX ?? 0.8;
+  const spacingY = params?.spacingY ?? 0.8;
+  const topY = params?.topY ?? 10;
+
+  const pins: Pin[] = [];
+
+  // Create staggered rectangular grid
+  for (let row = 0; row < rows; row++) {
+    // Odd rows are offset by half spacing for staggered effect
+    const offset = row % 2 === 1 ? spacingX / 2 : 0;
+
+    for (let col = 0; col < cols; col++) {
+      const x = (col - (cols - 1) / 2) * spacingX + offset; // Center + offset
+      const y = topY - row * spacingY;
+      pins.push({ x, y });
+    }
+  }
+
+  const bottomWidth = (cols - 1) * spacingX + spacingX / 2; // Account for offset
+  const binsY = topY - (rows - 1) * spacingY - spacingY;
+
+  return {
+    pins,
+    s: spacingX,
+    v: spacingY,
+    topY,
+    binsY,
+    bottomWidth,
+    rows,
+  };
+}
+
 export function createPinBodies(
   world: RAPIER.World,
   scene: Scene,

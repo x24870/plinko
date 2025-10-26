@@ -2,7 +2,7 @@ import "./styles.css";
 import { createScene } from "./scene/createScene";
 import { initializeRapierWorld } from "./physics/rapierWorld";
 import { createStaticBodies } from "./physics/staticBodies";
-import { generateTrianglePins, createPinBodies } from "./entities/PegGrid";
+import { generateRectanglePins, createPinBodies } from "./entities/PegGrid";
 import { generateBins, createBinBodies } from "./entities/ScoringBins";
 import { createBallPool, spawnBall } from "./entities/Ball";
 import { createGameLoop } from "./systems/GameLoop";
@@ -27,10 +27,12 @@ initializeRapierWorld().then((physicsWorld) => {
   console.log("Gravity:", physicsWorld.gravity);
   console.log("Timestep:", physicsWorld.timestep);
 
-  // Generate pin grid using PRD algorithm
-  const pinGrid = generateTrianglePins({
-    rows: 12,
-    s: 0.8,
+  // Generate rectangular pin grid
+  const pinGrid = generateRectanglePins({
+    rows: 12, // 12 rows
+    cols: 10, // 10 columns
+    spacingX: 0.8, // horizontal spacing
+    spacingY: 0.8, // vertical spacing
     topY: 10,
   });
 
