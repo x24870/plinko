@@ -6,6 +6,7 @@ import {
   Vector3,
   Scene,
 } from "@babylonjs/core";
+import { MaterialManager, createBinMaterial } from "../visual/MaterialManager";
 
 export interface Bin {
   idx: number;
@@ -70,7 +71,8 @@ function scoreFor(k: number, R: number): number {
 export function createBinBodies(
   world: RAPIER.World,
   scene: Scene,
-  binsInfo: BinsInfo
+  binsInfo: BinsInfo,
+  materialManager?: MaterialManager
 ): BinBodies {
   const binBodies: RAPIER.RigidBody[] = [];
   const binMeshes: any[] = [];
@@ -112,14 +114,24 @@ export function createBinBodies(
   floorMesh.material = binFloorMaterial;
   binMeshes.push(floorMesh);
 
-  // Create divider material
-  const dividerMaterial = new StandardMaterial("dividerMaterial", scene);
-  dividerMaterial.diffuseColor = new Color3(0.4, 0.4, 0.4);
+  // Find max score for color scaling
+  const maxScore = Math.max(...binsInfo.bins.map((bin) => bin.score));
 
-  // Create dividers between bins
+  // Create dividers between bins with colored materials
   for (let i = 0; i < binsInfo.gapXs.length; i++) {
     const gapX = binsInfo.gapXs[i]!; // Non-null assertion since we know the array has values
     const dividerWidth = 0.05;
+
+    // Get color based on adjacent bins' scores
+    let dividerMaterial: StandardMaterial;
+    const bin = binsInfo.bins[i];
+    if (materialManager && bin) {
+      dividerMaterial = createBinMaterial(materialManager, bin.score, maxScore);
+    } else {
+      // Fallback material
+      dividerMaterial = new StandardMaterial(`dividerMaterial_${i}`, scene);
+      dividerMaterial.diffuseColor = new Color3(0.4, 0.4, 0.4);
+    }
     const dividerHeight = 1.0;
     const dividerDepth = 0.1;
 

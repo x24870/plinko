@@ -6,6 +6,7 @@ import {
   Vector3,
 } from "@babylonjs/core";
 import { Scene } from "@babylonjs/core";
+import { MaterialManager } from "../visual/MaterialManager";
 
 export interface StaticBodies {
   leftWall: RAPIER.RigidBody;
@@ -21,7 +22,8 @@ export function createStaticBodies(
   scene: Scene,
   boardWidth: number,
   boardHeight: number,
-  wallMargin: number = 0.6
+  wallMargin: number = 0.6,
+  materialManager?: MaterialManager
 ): StaticBodies {
   const wallThickness = 0.2;
   const wallHeight = boardHeight + 2;
@@ -65,10 +67,15 @@ export function createStaticBodies(
   const ground = world.createRigidBody(groundDesc);
   world.createCollider(groundColliderDesc, ground);
 
-  // Create visual meshes for walls
-  const wallMaterial = new StandardMaterial("wallMaterial", scene);
-  wallMaterial.diffuseColor = new Color3(0.3, 0.3, 0.3);
-  wallMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+  // Use enhanced wall material if available
+  const wallMaterial = materialManager
+    ? materialManager.wallMaterial
+    : (() => {
+        const material = new StandardMaterial("wallMaterial", scene);
+        material.diffuseColor = new Color3(0.3, 0.3, 0.3);
+        material.specularColor = new Color3(0.1, 0.1, 0.1);
+        return material;
+      })();
 
   const leftWallMesh = MeshBuilder.CreateBox(
     "leftWall",

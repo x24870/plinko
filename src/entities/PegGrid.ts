@@ -7,6 +7,7 @@ import {
   Scene,
   TransformNode,
 } from "@babylonjs/core";
+import { MaterialManager } from "../visual/MaterialManager";
 
 export interface Pin {
   x: number;
@@ -102,7 +103,8 @@ export function generateRectanglePins(params?: {
 export function createPinBodies(
   world: RAPIER.World,
   scene: Scene,
-  pinGrid: PinGrid
+  pinGrid: PinGrid,
+  materialManager?: MaterialManager
 ): PinBodies {
   const pinBodies: RAPIER.RigidBody[] = [];
   const pinMeshes: any[] = [];
@@ -118,10 +120,15 @@ export function createPinBodies(
   const boardHeight = pinGrid.topY - pinGrid.binsY + 10;
   const boardDepth = 0.1;
 
-  // Create back board material
-  const boardMaterial = new StandardMaterial("boardMaterial", scene);
-  boardMaterial.diffuseColor = new Color3(0.9, 0.9, 0.7); // Light wood color
-  boardMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
+  // Use enhanced back board material if available
+  const boardMaterial = materialManager
+    ? materialManager.backBoardMaterial
+    : (() => {
+        const material = new StandardMaterial("boardMaterial", scene);
+        material.diffuseColor = new Color3(0.9, 0.9, 0.7); // Light wood color
+        material.specularColor = new Color3(0.1, 0.1, 0.1);
+        return material;
+      })();
 
   // Create back board mesh
   const backBoard = MeshBuilder.CreateBox(
@@ -179,10 +186,15 @@ export function createPinBodies(
   const boardBody = world.createRigidBody(boardDesc);
   world.createCollider(boardColliderDesc, boardBody);
 
-  // Create material for pins (cylindrical)
-  const pinMaterial = new StandardMaterial("pinMaterial", scene);
-  pinMaterial.diffuseColor = new Color3(0.7, 0.7, 0.7); // Silver color
-  pinMaterial.specularColor = new Color3(0.3, 0.3, 0.3);
+  // Use enhanced pin material if available
+  const pinMaterial = materialManager
+    ? materialManager.pinMaterial
+    : (() => {
+        const material = new StandardMaterial("pinMaterial", scene);
+        material.diffuseColor = new Color3(0.7, 0.7, 0.7); // Silver color
+        material.specularColor = new Color3(0.3, 0.3, 0.3);
+        return material;
+      })();
 
   const pinRadius = 0.1;
   const pinHeight = 1; // Height of cylindrical pins

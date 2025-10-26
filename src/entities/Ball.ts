@@ -7,6 +7,10 @@ import {
   Scene,
   Mesh,
 } from "@babylonjs/core";
+import {
+  MaterialManager,
+  getRandomBallMaterial,
+} from "../visual/MaterialManager";
 
 export interface Ball {
   body: RAPIER.RigidBody;
@@ -27,7 +31,8 @@ export function createBall(
   world: RAPIER.World,
   scene: Scene,
   position: Vector3,
-  ballId: string
+  ballId: string,
+  materialManager?: MaterialManager
 ): Ball {
   // Create ball physics body
   const ballDesc = RAPIER.RigidBodyDesc.dynamic();
@@ -48,20 +53,26 @@ export function createBall(
   world.createCollider(ballColliderDesc, ballBody);
 
   // Create ball visual mesh
-  const ballMaterial = new StandardMaterial(`ballMaterial_${ballId}`, scene);
-  ballMaterial.diffuseColor = new Color3(0.2, 0.6, 1.0); // Blue color
-  ballMaterial.specularColor = new Color3(0.3, 0.3, 0.3);
-
   const ballMesh = MeshBuilder.CreateSphere(
     `ball_${ballId}`,
     {
       diameter: 0.4, // Diameter = 2 * radius
-      segments: 12, // Medium poly for good performance
+      segments: 16, // Increased segments for smoother appearance
     },
     scene
   );
   ballMesh.position = position;
-  ballMesh.material = ballMaterial;
+
+  // Use colorful material if material manager is provided
+  if (materialManager) {
+    ballMesh.material = getRandomBallMaterial(materialManager);
+  } else {
+    // Fallback to default blue material
+    const ballMaterial = new StandardMaterial(`ballMaterial_${ballId}`, scene);
+    ballMaterial.diffuseColor = new Color3(0.2, 0.6, 1.0);
+    ballMaterial.specularColor = new Color3(0.3, 0.3, 0.3);
+    ballMesh.material = ballMaterial;
+  }
 
   return {
     body: ballBody,
@@ -75,14 +86,21 @@ export function createBallPool(
   world: RAPIER.World,
   scene: Scene,
   maxBalls: number = 50,
-  maxConcurrentBalls: number = 10
+  maxConcurrentBalls: number = 10,
+  materialManager?: MaterialManager
 ): BallPool {
   const balls: Ball[] = [];
 
   // Pre-create all rigid bodies to avoid memory leaks
   for (let i = 0; i < maxBalls; i++) {
     const ballId = `ball_${i}`;
-    const ball = createBall(world, scene, new Vector3(0, -100, 0), ballId);
+    const ball = createBall(
+      world,
+      scene,
+      new Vector3(0, -100, 0),
+      ballId,
+      materialManager
+    );
     ball.isActive = false; // Start inactive
     balls.push(ball);
   }

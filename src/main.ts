@@ -21,6 +21,7 @@ import {
 } from "./ui/UIManager";
 import { createGameManager, resetGame } from "./systems/GameManager";
 import { createFPSCounter, toggleFPSCounter } from "./systems/FPSCounter";
+import { createMaterialManager } from "./visual/MaterialManager";
 
 // Main entry point for the Plinko game
 console.log("Plinko Game starting...");
@@ -37,6 +38,9 @@ const ui = createUIManager();
 // Create BabylonJS scene
 const gameScene = createScene(canvas);
 console.log("BabylonJS scene created successfully");
+
+// Create Material Manager for enhanced visuals
+const materialManager = createMaterialManager(gameScene.scene);
 
 // Initialize physics world and create static bodies
 initializeRapierWorld().then((physicsWorld) => {
@@ -61,14 +65,17 @@ initializeRapierWorld().then((physicsWorld) => {
     physicsWorld.world,
     gameScene.scene,
     boardWidth,
-    boardHeight
+    boardHeight,
+    0,
+    materialManager
   );
 
-  // Create pin bodies and meshes
+  // Create pin bodies and meshes with enhanced materials
   const pinBodies = createPinBodies(
     physicsWorld.world,
     gameScene.scene,
-    pinGrid
+    pinGrid,
+    materialManager
   );
 
   // Generate bins and scoring zones
@@ -79,19 +86,21 @@ initializeRapierWorld().then((physicsWorld) => {
     v: pinGrid.v,
   });
 
-  // Create bin bodies and dividers
+  // Create bin bodies and dividers with colorful materials
   const binBodies = createBinBodies(
     physicsWorld.world,
     gameScene.scene,
-    binsInfo
+    binsInfo,
+    materialManager
   );
 
-  // Create ball pool for managing balls (pre-creates all rigid bodies)
+  // Create ball pool for managing balls with colorful materials
   const ballPool = createBallPool(
     physicsWorld.world,
     gameScene.scene,
     50, // Max total balls in pool
-    10 // Max concurrent active balls
+    10, // Max concurrent active balls
+    materialManager
   );
 
   // Create scoring system with UI callbacks
