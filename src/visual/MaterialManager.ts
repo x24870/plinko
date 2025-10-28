@@ -49,7 +49,7 @@ export function createMaterialManager(scene: Scene): MaterialManager {
     try {
       // Use relative path that works with Vite's base path
       const texturePath =
-        (import.meta as any).env.BASE_URL + "textures/casino-girl.png";
+        (import.meta as any).env.BASE_URL + "textures/plinko-girl.png";
       console.log("Loading texture from:", texturePath);
 
       const texture = new Texture(texturePath, scene, false, true);
